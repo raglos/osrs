@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [[ -z "$1" ]]; then
+    echo "usage: ""$0"" <osrs displayname>";
+    exit 1;
+fi
+
+curl -s http://services.runescape.com/m=hiscore_oldschool/hiscorepersonal.ws?user1="$1" | sed '/^<td align=.right..\([^<]\)/!d;s/^.*\">\([^<]*\).*$/\1/g' | tr '\n' '#' | grep -o '[a-zA-Z0-9\,]*#[a-zA-Z0-9\,]*#[a-zA-Z0-9\,]*#' | sed 's/^\(.*\).$/\1/g' | awk -F "#" 'BEGIN{i=1;a[1]="Overall";a[2]="Attack";a[3]="Defence";a[4]="Strength";a[5]="Hitpoints";a[6]="Ranged";a[7]="Ranged";a[8]="Prayer";a[9]="Magic";a[10]="Cooking";a[11]="Woodcutting";a[12]="Fletching";a[13]="Fishing";a[14]="Firemaking";a[15]="Crafting";a[16]="Smithing";a[17]="Mining";a[18]="Herblore";a[18]="Agility";a[19]="Thieving";a[20]="Slayer";a[21]="Farming";a[22]="Runecraft";a[23]="Hunter";a[24]="Construction";printf("%-15.15s %-10.10s %-10.10s %-12.12s\n", "Skill", "Rank", "Level", "XP")}{printf("%-15.15s %-10.10s %-10.10s %-12.12s\n",a[i++], $1, $2, $3)}' | head -n 25
+
+exit 0;
