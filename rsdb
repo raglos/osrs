@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [[ -z "$1" ]]; then
+    echo "usage: ""$0"" <string>";
+    echo "example: ""$0"" 'dragon dagger'";
+    exit 1;
+fi
+
+if [[ ${#1} -lt 3 || ${#1} -gt 32 ]]; then
+    echo "valid input len 3-32 only.";
+    exit 1;
+fi
+
+BASEURL="http://www.itemdb.biz/index.php?search=";
+V=`echo "$1" | tr ' ' '+'`
+TEXT=`curl -s "$BASEURL""$V"`
+
+if [ "$(grep -o 'no results' <<< "$TEXT" | wc -l)" -gt 0 ]; then
+    exit 1;
+fi
+
+TEXT=`echo "$TEXT" \
+| grep -o '<td><center><b>[0-9]*</b></center></td><[^<]*>[^<]*</td><td><center>[0-9]*</center><' \
+| sed 's/^.*<b>\([0-9]*\).*align:left...\([^<]*\).*<center>\([0-9]*\).*$/\1:\2:\3/g'`
+
+echo "$TEXT" \
+| awk -F ":" 'BEGIN{printf "%-10.10s %-32.32s %-10.10s\n", "ID", "NAME", "REVISION"}\
+{ printf "%-10.10s %-32-32s %-10.10s\n", $1, $2, $3 }'
+exit 0;
