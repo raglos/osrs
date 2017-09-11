@@ -1,0 +1,28 @@
+#!/bin/bash
+# rsge
+# fetches the current price for item $1 from the Grand Exchange
+# type its name properly.
+# by wrclark@github.com
+
+if [[ -z "$1" ]]; then
+    echo "usage: ""$0"" <item name in quotes preferably>";
+    exit 1;
+fi
+
+# tolower() + replace ' ' with '+'
+QUERY=$(echo "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '+')
+
+#echo "$QUERY";
+
+# sends data to G.E
+# extracts name, price, price change
+# then puts it into awk to print it pretty
+DATA=$(curl -s  --data "query=""$QUERY" \
+http://services.runescape.com/m=itemdb_oldschool/results#main-search \
+| sed '/^\s*<\(td\|a\)/!d;s/\t//g;s/\([\ ][\ ]*\)/ /g;/^<\(a\|td\)\( \|><\)\(class=.[^m]\|a href\)/!d' \
+| tr -d '\n' \
+| grep -o '<a class=.table-item-link. href=\"[^\"]*\" title=\"[^\"]*\">\s*<td><a href=\"[^\"]*\">[^<]*<.a.<.td>\s*<td class=.change[^>]*><a href=\"[^\"]*\">[^<]*<.a>' \
+| sed 's/^<a class=.table.item.link. href=.\([^\"]*\)\" title=.\([^\"]*\)\">.*\">\([^<]*\)<.a><.td>\s*<td class.*\">\([^<]*\)<.*$/\2::\3::\4/g' \
+| awk -F "::" 'BEGIN{printf("%-40.40s %-10.10s %-10.10s\n", "ITEM", "PRICE", "CHANGE")}{printf ("%-40.40s %-10.10s %-10.10s\n", $1, $2, $3)}' | sed 's/- \(.*\)$/-\1/g')
+
+echo "$DATA";
