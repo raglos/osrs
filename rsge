@@ -19,6 +19,7 @@ QUERY=$(echo "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '+')
 # then puts it into awk to print it pretty
 DATA=$(curl -s  --data "query=""$QUERY" \
 http://services.runescape.com/m=itemdb_oldschool/results#main-search \
+| sed '/<td class=..><.td>/d' \
 | sed '/^\s*<\(td\|a\)/!d;s/\t//g;s/\([\ ][\ ]*\)/ /g;/^<\(a\|td\)\( \|><\)\(class=.[^m]\|a href\)/!d' \
 | tr -d '\n' \
 | grep -o '<a class=.table-item-link. href=\"[^\"]*\" title=\"[^\"]*\">\s*<td><a href=\"[^\"]*\">[^<]*<.a.<.td>\s*<td class=.change[^>]*><a href=\"[^\"]*\">[^<]*<.a>' \
